@@ -1,0 +1,74 @@
+# =============================================================================
+# E-Commerce Backend — Application Configuration
+# =============================================================================
+# Environment variables can override any value below using ${ENV_VAR:default}
+# syntax. For production, set environment variables instead of changing this file.
+# =============================================================================
+
+server:
+  port: ${SERVER_PORT:8081}
+
+# ======================== DATABASE ========================
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/ecommerce_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USER:root}
+    password: ${DB_PASS:MySQL&*99}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # HikariCP connection pool settings for production performance
+    hikari:
+      maximum-pool-size: 10          # Max connections in the pool
+      minimum-idle: 5                # Min idle connections maintained
+      idle-timeout: 300000           # 5 min — close idle connections after this
+      connection-timeout: 20000      # 20 sec — max wait for a connection from pool
+      max-lifetime: 1200000          # 20 min — max lifetime of a connection
+
+  # ======================== JPA / HIBERNATE ========================
+  jpa:
+    hibernate:
+      ddl-auto: update               # Auto-creates/updates tables (use 'validate' in production with Flyway)
+    show-sql: false                   # Set to true for debugging SQL queries
+    open-in-view: false               # Disable OSIV to prevent lazy-loading issues in controllers
+    properties:
+      hibernate:
+        format_sql: true              # Pretty-print SQL when show-sql is true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # ======================== JACKSON ========================
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false    # ISO-8601 date format in JSON responses
+    default-property-inclusion: non_null  # Omit null fields from JSON responses
+
+# ======================== JWT CONFIGURATION ========================
+jwt:
+  secret: ${JWT_SECRET:VGhpc0lzQVZlcnlTZWN1cmVTZWNyZXRLZXlGb3JFY29tbWVyY2VBcHBsaWNhdGlvbjIwMjU=}
+  expiration: ${JWT_EXPIRATION:86400000}  # 24 hours in milliseconds
+
+# ======================== STRIPE PAYMENT GATEWAY ========================
+stripe:
+  api:
+    key: ${STRIPE_API_KEY:sk_test_placeholder}
+  webhook:
+    secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+  success-url: ${STRIPE_SUCCESS_URL:http://localhost:3000/payment/success?session_id={CHECKOUT_SESSION_ID}}
+  cancel-url: ${STRIPE_CANCEL_URL:http://localhost:3000/payment/cancel}
+
+# ======================== ACTUATOR (HEALTH & METRICS) ========================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics   # Expose only necessary endpoints
+  endpoint:
+    health:
+      show-details: when_authorized    # Show health details only to authenticated users
+
+# ======================== LOGGING ========================
+logging:
+  level:
+    root: INFO
+    com.ecommerce.backend: DEBUG       # Detailed logging for our application
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN            # Set to DEBUG to see SQL queries
